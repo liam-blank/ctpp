@@ -1,0 +1,25 @@
+name: Transit Accessibility Production
+on:
+  push:
+    branches:
+      - transit-accessibility-production-20260812
+    paths:
+      - '.github/workflows/transit-accessibility-production.yml'
+      - 'transit_accessibility_pipeline.py'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run production pipeline
+        run: python transit_accessibility_pipeline.py
+      - name: Upload outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: transit-accessibility-production
+          path: transit_accessibility_output/
+          compression-level: 0
+          retention-days: 7
