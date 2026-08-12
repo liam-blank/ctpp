@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/transit-accessibility-production.yml'
       - 'transit_accessibility_pipeline.py'
+      - 'score_input.csv.gz.b64'
   workflow_dispatch:
 
 jobs:
@@ -18,20 +19,43 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - name: Install analytical dependencies
+      - name: Install acquisition dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pandas==2.2.3 numpy==2.2.6 scipy==1.15.3 geopandas==1.0.1 shapely==2.0.7 pyogrio==0.10.0 pyarrow==19.0.1 pyproj==3.7.1 requests==2.32.3 holidays==0.69 osmium==4.0.2 tqdm==4.67.1
-      - name: Run production pipeline
+          python -m pip install pandas==2.2.3 requests==2.32.3
+      - name: Acquire production source data
         env:
           PYTHONUNBUFFERED: '1'
-          OMP_NUM_THREADS: '4'
         run: python transit_accessibility_pipeline.py
-      - name: Upload outputs
+      - name: Upload Census and LODES sources
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: transit-accessibility-production
-          path: transit_accessibility_output/
+          name: transit-accessibility-core
+          path: transit_accessibility_output/core/
+          compression-level: 0
+          retention-days: 7
+      - name: Upload OpenStreetMap source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transit-accessibility-osm
+          path: transit_accessibility_output/osm/
+          compression-level: 0
+          retention-days: 7
+      - name: Upload GTFS sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transit-accessibility-gtfs
+          path: transit_accessibility_output/gtfs/
+          compression-level: 0
+          retention-days: 7
+      - name: Upload acquisition inventories
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transit-accessibility-metadata
+          path: transit_accessibility_output/metadata/
           compression-level: 0
           retention-days: 7
